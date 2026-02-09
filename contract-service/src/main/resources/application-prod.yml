@@ -1,0 +1,79 @@
+# Production Profile Configuration
+
+spring:
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:contract_db}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    hikari:
+      maximum-pool-size: 20  # Higher pool for production
+      minimum-idle: 10
+      connection-timeout: 20000
+      idle-timeout: 300000
+      max-lifetime: 1200000
+  jpa:
+    hibernate:
+      ddl-auto: validate  # Never auto-create in production!
+    show-sql: false  # Disable SQL logging in production
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+    producer:
+      acks: all  # Ensure durability
+      retries: 5  # More retries in production
+
+# Saga Configuration (Strict for Production)
+saga:
+  step-timeout-seconds: 30
+  compensation-timeout-seconds: 60
+  max-retries: 3
+  retry-delay-ms: 1000
+  retry-multiplier: 2
+  metrics-enabled: true
+  alert-on-compensation-failure: true  # Alert ops team
+  idempotency-enabled: true
+  idempotency-ttl-hours: 24
+
+# Logging (Less Verbose for Production)
+logging:
+  level:
+    root: WARN
+    com.agrifood.contract: INFO
+    com.agrifood.common.saga: INFO
+    org.hibernate.SQL: WARN
+  file:
+    name: /var/log/agrifood/contract-service.log
+    max-size: 100MB
+    max-history: 30
+
+# External Services (Production URLs)
+external-services:
+  supplier-service:
+    url: ${SUPPLIER_SERVICE_URL:http://supplier-service:8085}
+    timeout-ms: 5000
+  procurement-service:
+    url: ${PROCUREMENT_SERVICE_URL:http://procurement-service:8084}
+    timeout-ms: 5000
+  email-service:
+    url: ${EMAIL_SERVICE_URL:http://email-service:8087}
+    timeout-ms: 10000
+    enabled: true
+
+# Security (Production)
+server:
+  ssl:
+    enabled: ${SSL_ENABLED:false}
+    key-store: ${SSL_KEY_STORE}
+    key-store-password: ${SSL_KEY_STORE_PASSWORD}
+    key-store-type: PKCS12
+
+# Monitoring
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+        step: 1m

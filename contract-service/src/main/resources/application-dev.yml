@@ -1,0 +1,43 @@
+# Development Profile Configuration
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/contract_db
+    username: macbookpro
+    password: 
+  jpa:
+    hibernate:
+      ddl-auto: update  # Auto-create tables in dev
+    show-sql: true
+  kafka:
+    bootstrap-servers: localhost:9092
+
+# Saga Configuration (Relaxed for Dev)
+saga:
+  step-timeout-seconds: 60  # Longer timeout for debugging
+  compensation-timeout-seconds: 120
+  max-retries: 1  # Less retries for faster feedback
+  metrics-enabled: true
+  alert-on-compensation-failure: false  # No alerts in dev
+
+# Logging (Verbose for Dev)
+logging:
+  level:
+    root: INFO
+    com.agrifood.contract: DEBUG
+    com.agrifood.common.saga: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+
+# External Services (Local)
+external-services:
+  supplier-service:
+    url: http://localhost:8085
+    timeout-ms: 10000  # Longer timeout for debugging
+  procurement-service:
+    url: http://localhost:8084
+    timeout-ms: 10000
+  email-service:
+    url: http://localhost:8087
+    timeout-ms: 15000
+    enabled: false  # Disable email in dev
